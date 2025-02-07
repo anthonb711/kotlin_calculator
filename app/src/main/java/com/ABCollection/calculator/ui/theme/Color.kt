@@ -1,4 +1,4 @@
-package com.ABCollection.calculator.ui.theme
+package com.abcollection.calculator.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

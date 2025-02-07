@@ -1,4 +1,4 @@
-package com.ABCollection.calculator.ui.theme
+package com.abcollection.calculator.ui.theme
 
 import android.app.Activity
 import android.os.Build
