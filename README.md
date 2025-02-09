@@ -2,7 +2,7 @@
 This project is a simple calculator application written in Kotlin using the Android Studio and the Jetpack Compose UI framework. 
 The goal was to get my toes wet with Kotlin and Android development. Through this project, I gained hands-on experience in building an interactive, user-friendly interface and understanding how Kotlin integrates with Jetpack Compose for mobile development.
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video(https://youtu.be/vYvQiFrRiGM)
 
 # Development Environment
 For this project, I used Android Studio a powerful IDE based on IntelliJ IDEA designed for Kotlin and C++ development for Android devices. The setup process was relatively straightforward, and the IDE provided excellent support for designing, building, and debugging the application.
