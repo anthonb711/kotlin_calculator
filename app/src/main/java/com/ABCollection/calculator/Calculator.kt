@@ -41,15 +41,26 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-enum class MATHOPERATION (val index:Int){
+//Library Imports
+import com.abcollection.calculatorlogic.CalcLogic
+import com.abcollection.calculatorlogic.MATHOPERATION
+
+
+enum class BTNFUNCTION( val index:Int) {
     NONE (0),
-    DIVIDE (1),
-    MULTIPLY (2),
-    ADD (3),
-    SUBTRACT (4),
-    MODULO (5),
-    PERCENT (6);
+    MATH (1),
+    NUM (2),
+    EQUALS (3),
+    CHANGESIGN (4),
+    MEMADD (5),
+    MEMGET (6),
+    MEMSUB (7),
+    MEMCLR (8),
+    CLRALL (9),
+    DELETE (10),
+    DECIMAL(11);
 }
+
 
 
 //Define the buttons for the calculator to be used in the UI grid and control flow
@@ -87,169 +98,37 @@ val decimalBtn    = Btn("decimal",    ".",   "decimalBtn",    1, 1);
  ***********************************************/
 
 class CalculatorViewModel : ViewModel() {
+   private val calcLogic = CalcLogic()
     var displayVal by mutableStateOf("0")
-    private var calcVal = 0.0
+    private var calcVal = " "
     private var memVal = 0.0
     private var mathOperator = MATHOPERATION.NONE
+    private var btnFunction = BTNFUNCTION.NONE
 
     /************************************************
      * UPDATE DISPLAY
      ***********************************************/
-    fun updateDisplay(newVal: String) {
-        displayVal = newVal
-    }
+    fun updateDisplay(btnFunction: BTNFUNCTION, btnVal: String = "" ) {
 
-    /************************************************
-     * NUM BTN PRESSED
-     ***********************************************/
-    fun numBtnPressed(btnValue: String) {
-        // if the display value is 0 the new number is displayed,
-        // if display is 0. we need to keep treat '.' || "0." as numButton
-        val dblDisplayVal = try {
-            displayVal.toDouble()
-        } catch (e: NumberFormatException) { 0.0 }
+            var solution = when (btnFunction) {
+                BTNFUNCTION.NONE -> ""
+                BTNFUNCTION.NUM ->        calcLogic.numBtnPressed(btnVal, displayVal)
+                BTNFUNCTION.MATH ->       calcLogic.mathBtnPressed(btnVal, displayVal)
+                BTNFUNCTION.EQUALS ->     calcLogic.equalsBtnPressed(displayVal)
+                BTNFUNCTION.CHANGESIGN -> calcLogic.changeSignBtnPressed(displayVal)
+                BTNFUNCTION.MEMADD ->     calcLogic.memAddBtnPressed(displayVal)
+                BTNFUNCTION.MEMGET ->     calcLogic.memGetBtnPressed()
+                BTNFUNCTION.MEMSUB ->     calcLogic.memSubBtnPressed(displayVal)
+                BTNFUNCTION.MEMCLR ->     calcLogic.memClearBtnPressed(displayVal)
+                BTNFUNCTION.CLRALL ->     calcLogic.clearAllBtnPressed()
+                BTNFUNCTION.DELETE ->     calcLogic.deleteBtnPressed(displayVal)
+                BTNFUNCTION.DECIMAL ->    calcLogic.decimalBtnPressed(displayVal)
 
-        if (displayVal != "0." && dblDisplayVal == 0.0) {
-            updateDisplay(btnValue)
-        } else {
-            val newVal = displayVal + btnValue
-            updateDisplay(newVal)
-        }
-    }
-
-    /************************************************
-     * MATH BUTTON PRESSED
-     ***********************************************/
-    fun mathBtnPressed(btnValue: String) {
-        mathOperator = MATHOPERATION.NONE
-        val currentVal = displayVal.toDoubleOrNull()
-        if (currentVal != null) {
-            calcVal = currentVal
-        }
-        when (btnValue) {
-            "÷"   -> mathOperator = MATHOPERATION.DIVIDE
-            "x"   -> mathOperator = MATHOPERATION.MULTIPLY
-            "+"   -> mathOperator = MATHOPERATION.ADD
-            "-"   -> mathOperator = MATHOPERATION.SUBTRACT
-            "mod" -> mathOperator = MATHOPERATION.MODULO
-            "%"   -> mathOperator = MATHOPERATION.PERCENT
-        }
-        updateDisplay(btnValue)
-    }
-
-    /************************************************
-     * CHANGE SIGN BUTTON PRESSED
-     ***********************************************/
-    fun changeSignBtnPressed() {
-        val currentVal = displayVal.toDoubleOrNull()
-
-        if (currentVal != null) {
-            val changedVal = (currentVal * -1)
-            updateDisplay(formatSolution(changedVal))
-        }
-    }
-
-    /************************************************
-     * EQUALS BUTTON PRESSED
-     ***********************************************/
-    fun equalsBtnPressed() {
-
-        val currentVal = displayVal.toDoubleOrNull()
-        if(currentVal != null) {
-           val solution = when (mathOperator) {
-                MATHOPERATION.NONE     -> { currentVal }
-                MATHOPERATION.DIVIDE   -> { calcVal / currentVal }
-                MATHOPERATION.MULTIPLY -> { calcVal * currentVal }
-                MATHOPERATION.ADD      -> { calcVal + currentVal }
-                MATHOPERATION.SUBTRACT -> { calcVal - currentVal }
-                MATHOPERATION.MODULO   -> { calcVal % currentVal }
-                MATHOPERATION.PERCENT  -> { calcVal * (currentVal / 100) }
             }
-            updateDisplay(formatSolution(solution))
-        }
+            displayVal = solution
+      }
     }
 
-    /************************************************
-     * CLEAR ALL BUTTON PRESSED
-     ***********************************************/
-    fun clearAllBtnPressed(){
-        calcVal = 0.0
-        displayVal = ""
-        mathOperator = MATHOPERATION.NONE
-    }
-
-    /************************************************
-     * DELETE BUTTON PRESSED
-     ***********************************************/
-    fun deleteBtnPressed(){
-        val newVal = (displayVal.dropLast(1))
-        updateDisplay(newVal)
-    }
-
-    /************************************************
-     * MEM ADD BUTTON PRESSED
-     * *********************************************/
-    fun memAddBtnPressed(){
-        var dblDisplayVal = displayVal.toDoubleOrNull()
-        if (dblDisplayVal == null) {
-            dblDisplayVal = 0.0
-        }
-        memVal += dblDisplayVal
-        updateDisplay(formatSolution(memVal))
-    }
-
-    /************************************************
-     * MEM SUB BUTTON PRESSED
-     ***********************************************/
-    fun memSubBtnPressed(){
-        var dblDisplayVal = displayVal.toDoubleOrNull()
-        if (dblDisplayVal == null) {
-            dblDisplayVal = 0.0
-        }
-        memVal -= dblDisplayVal
-        updateDisplay(formatSolution(memVal))
-    }
-
-    /************************************************
-     * MEM GET BUTTON PRESSED
-     ***********************************************/
-    fun memGetBtnPressed(){
-        updateDisplay(formatSolution(memVal))
-    }
-
-    /************************************************
-     * CLEAR MEM BUTTON PRESSED
-     ***********************************************/
-    fun memClearBtnPressed(){
-        memVal = 0.0
-    }
-
-    /************************************************
-     * DECIMAL BUTTON PRESSED
-     ***********************************************/
-    fun decimalBtnPressed(){
-        val dblDisplayVal = try {
-            displayVal.toDouble()
-        } catch (e: NumberFormatException) { 0.0 }
-
-        if(dblDisplayVal == 0.0){
-            updateDisplay("0.")
-        } else {
-            updateDisplay(("$displayVal."))
-        }
-    }
-
-    /************************************************
-     * FORMAT SOLUTION
-     ***********************************************/
-    private fun formatSolution(solution: Double):String {
-        return if (solution % 1.0 == 0.0) {
-            solution.toLong().toString()
-        } else {
-            solution.toString()
-        }
-    }
-} // CalculatorViewModel
 
 /************************************************
  * @COMPOSABLE
@@ -266,6 +145,7 @@ fun CalculatorScreen(
         viewModel = viewModel
     )
 }
+
 
 /************************************************
  * @COMPOSABLE
@@ -323,7 +203,6 @@ fun CalcLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewModel ) {
             .padding(4.dp)
             .background(Color(0xff1a1817))
     ) {
-
         // In a 5x5 grid = size 25, make coordinate references for each cell
         val cellRefs = List(25) { createRef() }
 
@@ -427,6 +306,7 @@ fun CalcLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewModel ) {
     }
 }
 
+
 /************************************************
  * @COMPOSABLE
  * CALC BTN
@@ -458,17 +338,17 @@ var width =  (70.dp)
 
         onClick = {
             when (btn.btnFunction) {
-                "mathBtn"       -> viewModel.mathBtnPressed(btn.value)
-                "numBtn"        -> viewModel.numBtnPressed(btn.value)
-                "equalsBtn"     -> viewModel.equalsBtnPressed()
-                "changeSignBtn" -> viewModel.changeSignBtnPressed()
-                "memAddBtn"     -> viewModel.memAddBtnPressed()
-                "memGetBtn"     -> viewModel.memGetBtnPressed()
-                "memSubBtn"     -> viewModel.memSubBtnPressed()
-                "memClearBtn"   -> viewModel.memClearBtnPressed()
-                "clearAllBtn"   -> viewModel.clearAllBtnPressed()
-                "deleteBtn"     -> viewModel.deleteBtnPressed()
-                "decimalBtn"    -> viewModel.decimalBtnPressed()
+                "mathBtn"       -> viewModel.updateDisplay(BTNFUNCTION.MATH, btn.value)
+                "numBtn"        -> viewModel.updateDisplay(BTNFUNCTION.NUM, btn.value )
+                "equalsBtn"     -> viewModel.updateDisplay(BTNFUNCTION.EQUALS)
+                "changeSignBtn" -> viewModel.updateDisplay(BTNFUNCTION.CHANGESIGN)
+                "memAddBtn"     -> viewModel.updateDisplay(BTNFUNCTION.MEMADD)
+                "memGetBtn"     -> viewModel.updateDisplay(BTNFUNCTION.MEMGET)
+                "memSubBtn"     -> viewModel.updateDisplay(BTNFUNCTION.MEMSUB)
+                "memClearBtn"   -> viewModel.updateDisplay(BTNFUNCTION.MEMCLR)
+                "clearAllBtn"   -> viewModel.updateDisplay(BTNFUNCTION.CLRALL)
+                "deleteBtn"     -> viewModel.updateDisplay(BTNFUNCTION.DELETE)
+                "decimalBtn"    -> viewModel.updateDisplay(BTNFUNCTION.DECIMAL)
             }
         },
         shape = RoundedCornerShape(20),
@@ -476,5 +356,3 @@ var width =  (70.dp)
         colors = ButtonDefaults.buttonColors(containerColor = containerColor)
     ) { Text(text = btn.value) }
 }
-
-

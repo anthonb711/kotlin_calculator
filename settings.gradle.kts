@@ -8,6 +8,7 @@ pluginManagement {
             }
         }
         mavenCentral()
+        maven("https://jitpack.io")
         gradlePluginPortal()
     }
 }
@@ -21,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Calculator"
 include(":app")
- 
+include(":calculatorLogic")
